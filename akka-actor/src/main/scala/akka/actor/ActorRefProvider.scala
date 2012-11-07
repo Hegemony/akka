@@ -9,7 +9,7 @@ import akka.routing._
 import akka.event._
 import akka.util.{ Switch, Helpers }
 import scala.util.{ Success, Failure }
-import scala.util.control.NonFatal
+import akka.japi.Util.immutableSeq
 import scala.concurrent.{ Future, Promise }
 import java.util.concurrent.atomic.AtomicLong
 
@@ -271,10 +271,7 @@ trait ActorRefFactory {
    *
    * For maximum performance use a collection with efficient head & tail operations.
    */
-  def actorFor(path: java.lang.Iterable[String]): ActorRef = {
-    import scala.collection.JavaConverters._
-    provider.actorFor(lookupRoot, path.asScala)
-  }
+  def actorFor(path: java.lang.Iterable[String]): ActorRef = provider.actorFor(lookupRoot, immutableSeq(path))
 
   /**
    * Construct an [[akka.actor.ActorSelection]] from the given path, which is

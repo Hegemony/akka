@@ -10,6 +10,7 @@ import scala.collection.immutable
 import scala.reflect.ClassTag
 import scala.util.control.NoStackTrace
 import scala.runtime.AbstractPartialFunction
+import akka.util.Collections.EmptyImmutableSeq
 import java.util.Collections.{ emptyList, singletonList }
 
 /**
@@ -177,7 +178,23 @@ object Option {
 object Util {
   def classTag[T](clazz: Class[T]): ClassTag[T] = ClassTag(clazz)
 
-  def arrayToSeq[T](arr: Array[T]): immutable.Seq[T] = arr.to[immutable.Seq]
+  def arrayToSeq(arr: Array[Class[_]]): immutable.Seq[Class[_]] = arrayToSeq(arr)
 
-  def arrayToSeq(classes: Array[Class[_]]): immutable.Seq[Class[_]] = classes.to[immutable.Seq]
+  def arrayToSeq[T](arr: Array[T]): immutable.Seq[T] = if ((arr ne null) && arr.length > 0) Vector(arr: _*) else Nil
+
+  def immutableSeq[T](iterable: java.lang.Iterable[T]): immutable.Seq[T] =
+    iterable match {
+      case imm: immutable.Seq[_] ⇒ imm.asInstanceOf[immutable.Seq[T]]
+      case other ⇒
+        val i = other.iterator()
+        if (i.hasNext) {
+          val builder = new immutable.VectorBuilder[T]
+
+          do { builder += i.next() } while (i.hasNext)
+
+          builder.result()
+        } else EmptyImmutableSeq
+    }
+
+  def immutableSingletonSeq[T](value: T): immutable.Seq[T] = List(value)
 }
